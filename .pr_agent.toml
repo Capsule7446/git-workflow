@@ -1,0 +1,14 @@
+[config]
+model = "openai/qwen-coder"
+fallback_models = ["openai/qwen-coder"]
+custom_model_max_tokens = 128000
+response_language = "zh-CN"
+
+[pr_reviewer]
+extra_instructions = "请用中文进行 PR Review，重点关注潜在 bug、安全风险、边界条件、测试缺失和可维护性。"
+
+[pr_description]
+extra_instructions = "请用中文总结 PR 变更。"
+
+[pr_code_suggestions]
+extra_instructions = "请用中文给出代码改进建议。"
