@@ -21,26 +21,44 @@ jobs:
       (contains(fromJson('["/review","/describe","/improve"]'), github.event.comment.body) ||
       startsWith(github.event.comment.body, '/ask ')))
     runs-on: ubuntu-latest
-    env:
-      OPENAI_API_BASE: ${{ secrets.OPENAI_API_BASE }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Check actor permission
+        id: actor_permission
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          permission="$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${GITHUB_ACTOR}/permission" --jq .permission 2>/dev/null || echo none)"
+          case "$permission" in
+            admin|maintain|write) echo "allowed=true" >> "$GITHUB_OUTPUT" ;;
+            *) echo "allowed=false" >> "$GITHUB_OUTPUT" ;;
+          esac
+
       - name: Check PR Agent configuration
-        if: ${{ env.OPENAI_API_BASE == '' || env.OPENAI_API_KEY == '' }}
-        run: echo "OPENAI_API_BASE or OPENAI_API_KEY is not configured; skipping PR Agent."
+        id: pr_agent_config
+        if: ${{ steps.actor_permission.outputs.allowed == 'true' }}
+        env:
+          OPENAI_API_BASE: ${{ secrets.OPENAI_API_BASE }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -z "$OPENAI_API_BASE" ] || [ -z "$OPENAI_API_KEY" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "OPENAI_API_BASE or OPENAI_API_KEY is not configured; skipping PR Agent."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: PR Agent
-        if: ${{ env.OPENAI_API_BASE != '' && env.OPENAI_API_KEY != '' }}
+        if: ${{ steps.actor_permission.outputs.allowed == 'true' && steps.pr_agent_config.outputs.configured == 'true' }}
         uses: The-PR-Agent/pr-agent@b1328dff6c598633d78b69d1035298ca3f8aeffb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENAI_KEY: ${{ env.OPENAI_API_KEY }}
-          OPENAI__KEY: ${{ env.OPENAI_API_KEY }}
-          OPENAI__API_BASE: ${{ env.OPENAI_API_BASE }}
+          OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI__KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI__API_BASE: ${{ secrets.OPENAI_API_BASE }}
           CONFIG__MODEL: gpt-5.5
           CONFIG__FALLBACK_MODELS: '["gpt-5.4"]'
           CONFIG__CUSTOM_MODEL_MAX_TOKENS: "128000"
