@@ -22,6 +22,9 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Check PR Agent configuration
         if: ${{ env.OPENAI_API_BASE == '' || env.OPENAI_API_KEY == '' }}
         run: echo "OPENAI_API_BASE or OPENAI_API_KEY is not configured; skipping PR Agent."
@@ -31,5 +34,12 @@ jobs:
         uses: The-PR-Agent/pr-agent@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENAI__API_BASE: ${{ env.OPENAI_API_BASE }}
+          OPENAI_KEY: ${{ env.OPENAI_API_KEY }}
           OPENAI__KEY: ${{ env.OPENAI_API_KEY }}
+          OPENAI__API_BASE: ${{ env.OPENAI_API_BASE }}
+          github_action_config.auto_review: "true"
+          github_action_config.auto_describe: "false"
+          github_action_config.auto_improve: "false"
+          github_action_config.pr_actions: '["opened", "reopened", "ready_for_review", "synchronize"]'
+          github_action_config.handle_push_trigger: "true"
+          github_action_config.push_commands: '["/review"]'
