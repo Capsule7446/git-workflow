@@ -15,7 +15,11 @@ jobs:
   pr_agent:
     if: >
       github.event_name == 'pull_request' ||
-      (github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/'))
+      (github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      contains(fromJson('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
+      (contains(fromJson('["/review","/describe","/improve"]'), github.event.comment.body) ||
+      startsWith(github.event.comment.body, '/ask ')))
     runs-on: ubuntu-latest
     env:
       OPENAI_API_BASE: ${{ secrets.OPENAI_API_BASE }}
@@ -31,7 +35,7 @@ jobs:
 
       - name: PR Agent
         if: ${{ env.OPENAI_API_BASE != '' && env.OPENAI_API_KEY != '' }}
-        uses: The-PR-Agent/pr-agent@main
+        uses: The-PR-Agent/pr-agent@b1328dff6c598633d78b69d1035298ca3f8aeffb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_KEY: ${{ env.OPENAI_API_KEY }}
