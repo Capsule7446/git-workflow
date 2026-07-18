@@ -1,0 +1,33 @@
+version: 1
+workflow: trunk-based
+default_branch: master
+remote: origin
+pull_request:
+  target: master
+  required: true
+branching:
+  feature: feature/<description>
+  fix: fix/<description>
+  refactor: refactor/<description>
+  chore: chore/<description>
+  docs: docs/<description>
+  hotfix: hotfix/<description>
+  max_description_length: 50
+sync:
+  private_branch: rebase
+  shared_branches: merge
+  protected_branches:
+    - master
+    - develop
+    - 'epic/*'
+commit:
+  convention: conventional-commits
+  atomic: true
+risk:
+  safe: read-only inspection and planning
+  caution: local commits, worktrees, and private-branch synchronization
+  danger: force-push, shared-branch changes, merge, tag, and branch deletion
+  require_confirmation: true
+worktree:
+  enabled: true
+  directory: ../<repo>.worktrees/<branch-slug>
