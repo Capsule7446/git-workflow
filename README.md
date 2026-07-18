@@ -37,10 +37,21 @@ Git Workflow 是一个面向 Claude Code 的 Git 协作插件，将分支策略�
 | [`gw-integrate`](skills/gw-integrate/SKILL.md) | 集成分支、解决冲突并验证结果。 |
 | [`gw-recover`](skills/gw-recover/SKILL.md) | 使用 reflog 等手段恢复 Git 状态。 |
 
-## 使用方式
+## 安装
 
 ```text
-/git-workflow:worktree <任务名>
+/plugin marketplace add Capsule7446/maker-stack
+/plugin install git-workflow@maker-stack
+```
+
+也可以从仓库下载后，在 Claude Code 中作为本地插件目录加载。
+
+## 使用方式
+
+`worktree` 的参数是分支名，不是自然语言任务描述：
+
+```text
+/git-workflow:worktree <分支名>
 /git-workflow:commit
 /git-workflow:ship
 ```
