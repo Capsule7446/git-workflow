@@ -60,7 +60,7 @@ git-workflow:gw-route       （判定 hotfix；基线 = 最近的生产发布点
 | G2 提交门禁 | gw-commit 后 | 单个最小原子提交;无密钥/残留;不夹带无关改动 |
 | G3 交付门禁 | gw-ship 前 | **CI 绿**(紧急也要验证);PR 正文说清故障、根因、影响面、验证方式 |
 | G-rel 发布门禁 | gw-integrate 时 | 合入生产分支;打 patch tag;触发发布 |
-| G-back 回灌门禁 | 发布后 | 修复已 **back-merge** 回 `main`/`develop`/进行中的 `epic`,确认下次发布不会丢失它 |
+| G-back 回灌门禁 | 发布后 | 逐个检查目标分支是否已包含发布合并提交；生产目标分支跳过，其他未包含修复的分支才回灌 |
 
 ## 4. 回溯矩阵（hotfix 特有项)
 
@@ -84,7 +84,7 @@ worktree  → git worktree add -b hotfix/login-500 ../app.worktrees/hot v1.3.2
 commit    → fix(auth): 登录时 session 为空导致 500（单个最小提交）        ── G2 ✅
 ship      → push；PR 正文:故障/根因/影响/验证；CI 绿                       ── G3 ✅
 integrate → 合入生产分支 → git tag -a v1.3.3 && push → 触发发布            ── G-rel ✅
-back-merge→ 在 main/develop/epic 各自的 worktree 或 back-merge 分支中执行 git merge hotfix （把修复回灌 main 与进行中的 epic/checkout）── G-back ✅
+back-merge→ 对 main/develop/epic 逐个检查发布合并提交是否已可达；生产目标分支跳过重复回灌，其余未包含修复的分支才在各自 worktree 或 back-merge 分支中执行 git merge 发布合并提交，必要时使用 cherry-pick── G-back ✅
 清理      → 删 hotfix/login-500 分支与 worktree
 → 生产已修复发版 v1.3.3,修复已回灌,不会被下次发布覆盖
 ```
@@ -94,4 +94,4 @@ back-merge→ 在 main/develop/epic 各自的 worktree 或 back-merge 分支中�
 - **最小改动**:hotfix 只修那一个故障点,任何"顺手"都推迟到正常 `workflow-deliver`。
 - **基线是发布点**:绝不在最新 `main` 上做热修(会把未发布改动一起带上线)。
 - **紧急也验证**:G3 的 CI 绿不可省。
-- **必回灌**:G-back 是 hotfix 区别于普通修复的命脉——发布后立即把修复 back-merge 回所有日常基线(`main`/`develop`/进行中的 `epic`)。
+- **按需回灌**:G-back 的目标是让修复进入尚未包含发布合并提交的日常基线；生产目标分支已经包含该提交时跳过，其他分支逐个检查后再 merge 或 cherry-pick。

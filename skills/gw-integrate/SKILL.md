@@ -40,8 +40,9 @@ tags: "[git, integrate, merge-strategy, cleanup, release]"
 
    - 平台执行:`gh pr merge --squash|--merge|--rebase --delete-branch`(GitLab `glab mr merge`)。
    - **Epic 收口到 main**:通常用 **merge commit** 或一个**汇总 squash**,让 main 上能看清"这是结算改版整块",并据团队策略决定是否保留子提交。
-3. **打 tag / 衔接发版**(若该次合并触发发布):先获取并校验该 PR 的合并提交 OID，再直接对该确定提交创建 annotated tag；不得通过“拉取最新 main 后对当前 HEAD 打 tag”，避免并发合并把标签指向其他提交。
-   - GitHub：`merge_oid=$(gh pr view <pr> --json mergeCommit --jq .mergeCommit.oid)`；确认 OID 非空且属于目标分支后，执行 `git fetch origin <target>`、`git tag -a vX.Y.Z "$merge_oid" -m "..."`、`git push origin vX.Y.Z`。
+3. **打 tag / 衔接发版**(若该次合并触发发布):先读取并校验 PR 的合并状态、目标分支和合并提交 OID，再对确定的 OID 创建 annotated tag；不得对当前 HEAD 或未确认的最新 main 打 tag。
+   - GitHub：`gh pr view <pr> --json state,baseRefName,mergeCommit`；必须确认 `state=MERGED`、`baseRefName=<target>` 且 `mergeCommit.oid` 非空。
+   - 更新远端跟踪引用后，执行 `git merge-base --is-ancestor "$merge_oid" "origin/<target>"`；成功后才执行 `git tag -a vX.Y.Z "$merge_oid" -m "..."` 与 `git push origin vX.Y.Z`。
    - 遵循 SemVer：破坏性→major、新功能→minor、修复→patch。
 4. **合并后清理(确认已合并再删)**:
    - 删远端分支:`gh pr merge --delete-branch` 已含,或 `git push origin --delete <branch>`。
