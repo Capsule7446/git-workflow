@@ -60,7 +60,7 @@ worktree  → git worktree add -b hotfix/login-500 ../app.worktrees/hot v1.3.2
 commit    → fix(auth): 登录时 session 为空导致 500（单个最小提交）        ── G2 ✅
 ship      → push；PR 正文:故障/根因/影响/验证；CI 绿                       ── G3 ✅
 integrate → 合入生产分支 → git tag -a v1.3.3 && push → 触发发布            ── G-rel ✅
-back-merge→ git switch main && git merge hotfix （把修复回灌 main 与进行中的 epic/checkout）── G-back ✅
+back-merge→ 在 main/develop/epic 各自的 worktree 或 back-merge 分支中执行 git merge hotfix （把修复回灌 main 与进行中的 epic/checkout）── G-back ✅
 清理      → 删 hotfix/login-500 分支与 worktree
 → 生产已修复发版 v1.3.3,修复已回灌,不会被下次发布覆盖
 ```
