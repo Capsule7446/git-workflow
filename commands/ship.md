@@ -3,7 +3,6 @@ description: 端到端交付一段变更:路由(选分支风格)→ 隔离 → �
 argument-hint: <要交付的工作描述> [--draft] [--epic <name>] [--no-merge 止于开 PR]
 ---
 
-> Workflow 文件通过同名 `workflow-*` Skill 注册后调用。
 
 # /git-workflow:ship
 
