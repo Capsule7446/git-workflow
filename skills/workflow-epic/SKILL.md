@@ -1,3 +1,27 @@
+---
+name: workflow-epic
+description: 执行 workflow-epic 编排流程，负责阶段顺序、输入输出交接、门禁和回溯。
+risk: caution
+source: self
+---
+
+## 做什么
+
+执行 `workflow-epic` 的完整编排流程。
+
+## 需要什么参数
+
+- **必需**：项目路径、目标和当前上下文。
+- **可选**：技术栈、约束、工单号和已有运行工件。
+
+## 怎么做
+
+按下方流程执行阶段、门禁和回溯。
+
+## 返回什么
+
+返回阶段工件、门禁结果、未解决风险和下一步建议。
+
 # Workflow：Epic（大需求并行 / 集成分支)
 
 > 大需求驱动。一个 epic(大需求)拆成多个小需求,多人/多 Agent 并行开发,先在一条**集成分支**上汇合,再整体收口到 `main`。由 `/git-workflow:ship --epic <name>` 触发,或 `gw-route` 判定为 epic 场景时进入。
@@ -70,7 +94,7 @@ git-workflow:gw-route   （判定 epic 场景；epic/<name> 不存在则先建�
 /git-workflow:ship 结算改版 --epic checkout    （大需求：优惠券 + 支付 + 对账，3 人 + 2 Agent）
 
 route     → 场景 = epic；epic/checkout 不存在 → git switch -c epic/checkout origin/main
-            && push -u && 开分支保护（禁直接 push / 必经 PR）             ── 用户确认 ✅
+            && git push -u origin epic/checkout && 开分支保护（禁直接 push / 必经 PR）             ── 用户确认 ✅
 并行子需求（各开 worktree，base=epic/checkout）：
   sub1 优惠券  → worktree coupon  → commit → rebase epic → PR base=epic/checkout → 合进 epic  G1-3 ✅
   sub2 支付    → worktree payment → commit → rebase epic → PR base=epic/checkout → 合进 epic  G1-3 ✅
@@ -78,7 +102,15 @@ route     → 场景 = epic；epic/checkout 不存在 → git switch -c epic/che
 周期同步   → 每隔几天在 epic/checkout 上 git merge origin/main（防收口巨冲突）
 收口       → 3 子需求齐 → epic/checkout 与 main 无冲突、CI 绿                ── G4 ✅
             gh pr merge <epic-pr> --merge   （merge commit 收口，保留"结算改版"整块）
-            git tag -a v1.4.0 && push       （minor：新增功能）
+            merge_oid=$(gh pr view <epic-pr> --json mergeCommit --jq .mergeCommit.oid)
+            test -n "$merge_oid"
+            git fetch origin main
+            git tag -a v1.4.0 "$merge_oid" -m "release: v1.4.0"
+            git push origin v1.4.0
+            # 不要直接从 origin/main 创建 detached HEAD。
+            # 本地已有 main：git worktree add ../repo.release main
+            # 本地没有 main：git worktree add -b main ../repo.release origin/main
+            # 进入 release worktree 后：git fetch origin main && git pull --ff-only
 清理       → 删 epic/checkout + feature/checkout-* 全部子分支 + 全部 worktree
 → 结算改版上主线、发版 v1.4.0,集成分支用完即删
 ```

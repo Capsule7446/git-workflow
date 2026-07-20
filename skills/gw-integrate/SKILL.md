@@ -40,13 +40,18 @@ tags: "[git, integrate, merge-strategy, cleanup, release]"
 
    - 平台执行:`gh pr merge --squash|--merge|--rebase --delete-branch`(GitLab `glab mr merge`)。
    - **Epic 收口到 main**:通常用 **merge commit** 或一个**汇总 squash**,让 main 上能看清"这是结算改版整块",并据团队策略决定是否保留子提交。
-3. **打 tag / 衔接发版**(若该次合并触发发布):在 `main` 上 `git tag -a vX.Y.Z -m "..."` 并 `git push origin vX.Y.Z`(本市场插件正是靠 `v*` tag 触发 CI 发布)。遵循 SemVer:破坏性→major、新功能→minor、修复→patch。
+3. **打 tag / 衔接发版**(若该次合并触发发布):先读取并校验 PR 的合并状态、目标分支和合并提交 OID，再对确定的 OID 创建 annotated tag；不得对当前 HEAD 或未确认的最新 main 打 tag。
+   - GitHub：`gh pr view <pr> --json state,baseRefName,mergeCommit`；必须确认 `state=MERGED`、`baseRefName=<target>` 且 `mergeCommit.oid` 非空。
+   - 更新远端跟踪引用后，执行 `git merge-base --is-ancestor "$merge_oid" "origin/<target>"`；成功后才执行 `git tag -a vX.Y.Z "$merge_oid" -m "..."` 与 `git push origin vX.Y.Z`。
+   - 遵循 SemVer：破坏性→major、新功能→minor、修复→patch。
 4. **合并后清理(确认已合并再删)**:
    - 删远端分支:`gh pr merge --delete-branch` 已含,或 `git push origin --delete <branch>`。
    - 删本地分支:`git branch -d <branch>`(`-d` 要求已合并;用 `-D` 前必须确认)。
    - **回收 worktree**:对应 worktree `git worktree remove <path>` + `git worktree prune`(转 `gw-worktree` 的清理流程)。
    - **Epic 全家桶**:epic 合入 main 后,删 `epic/<name>` 及其**所有子分支**与**所有相关 worktree**。
-5. **同步本地主线**:`git switch main && git pull --ff-only`,让本地 main 跟上刚合并的远端。
+5. **同步本地主线(按 worktree 现场选择)**:
+   - 先执行 `git worktree list`，如果 `main` 已在某个 worktree 检出，就进入该路径执行 `git fetch origin main` 与 `git pull --ff-only`。
+   - 如果没有可用主工作树，创建专用发布 worktree：若本地已有 `main`，执行 `git worktree add ../<repo>.release main`；若本地没有 `main`，执行 `git worktree add -b main ../<repo>.release origin/main`。进入该 worktree 后执行 `git fetch origin main` 与 `git pull --ff-only`，再进行需要目标分支上下文的发布操作，完成后按 `gw-worktree` 流程回收。
 6. **报告**:合了什么(PR/提交)、用何策略、是否打 tag、清理了哪些分支/worktree、主线当前状态。
 
 ## 输出
