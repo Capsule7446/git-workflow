@@ -107,8 +107,10 @@ route     → 场景 = epic；epic/checkout 不存在 → git switch -c epic/che
             git fetch origin main
             git tag -a v1.4.0 "$merge_oid" -m "release: v1.4.0"
             git push origin v1.4.0
-            # 不切换当前 worktree；若需同步 main，进入已检出的 main worktree，
-            # 或创建专用发布 worktree 后执行 git pull --ff-only。
+            # 不要直接从 origin/main 创建 detached HEAD。
+            # 本地已有 main：git worktree add ../repo.release main
+            # 本地没有 main：git worktree add -b main ../repo.release origin/main
+            # 进入 release worktree 后：git fetch origin main && git pull --ff-only
 清理       → 删 epic/checkout + feature/checkout-* 全部子分支 + 全部 worktree
 → 结算改版上主线、发版 v1.4.0,集成分支用完即删
 ```

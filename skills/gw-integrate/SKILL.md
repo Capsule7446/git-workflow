@@ -50,7 +50,7 @@ tags: "[git, integrate, merge-strategy, cleanup, release]"
    - **Epic 全家桶**:epic 合入 main 后,删 `epic/<name>` 及其**所有子分支**与**所有相关 worktree**。
 5. **同步本地主线(按 worktree 现场选择)**:
    - 先执行 `git worktree list`，如果 `main` 已在某个 worktree 检出，就进入该路径执行 `git fetch origin main` 与 `git pull --ff-only`。
-   - 如果没有可用主工作树，创建专用发布 worktree：`git worktree add ../<repo>.release origin/main`，在其中同步和执行需要目标分支上下文的发布操作，完成后按 `gw-worktree` 流程回收。
+   - 如果没有可用主工作树，创建专用发布 worktree：若本地已有 `main`，执行 `git worktree add ../<repo>.release main`；若本地没有 `main`，执行 `git worktree add -b main ../<repo>.release origin/main`。进入该 worktree 后执行 `git fetch origin main` 与 `git pull --ff-only`，再进行需要目标分支上下文的发布操作，完成后按 `gw-worktree` 流程回收。
 6. **报告**:合了什么(PR/提交)、用何策略、是否打 tag、清理了哪些分支/worktree、主线当前状态。
 
 ## 输出
