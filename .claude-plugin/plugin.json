@@ -1,6 +1,6 @@
 {
   "name": "git-workflow",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "把通用 Git 工作流固化成 Agent 可重复执行、可门禁、可回溯的工序:分支模型决策(默认 Trunk-Based / GitHub Flow,Git Flow 备选)、worktree 隔离、原子提交与 Conventional Commits、基线同步、PR 交付、合并清理与误操作救援。以 risk 安全分级(safe/caution/danger)守护每一步状态变更,平台无关(GitHub / GitLab / Bitbucket / 裸远端),SKILL/COMMAND/WORKFLOW 三层分明。",
   "author": {
     "name": "Pauly"
