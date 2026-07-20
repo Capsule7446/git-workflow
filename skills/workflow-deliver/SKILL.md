@@ -1,7 +1,26 @@
 ---
 name: workflow-deliver
-description: 执行 workflow-deliver 编排流程；这是由 Command 或其他 Skill 调用的注册 Workflow。
+description: 执行 workflow-deliver 编排流程，负责阶段顺序、输入输出交接、门禁和回溯。
+risk: caution
+source: self
 ---
+
+## 做什么
+
+执行 `workflow-deliver` 的完整编排流程。
+
+## 需要什么参数
+
+- **必需**：项目路径、目标和当前上下文。
+- **可选**：技术栈、约束、工单号和已有运行工件。
+
+## 怎么做
+
+按下方流程执行阶段、门禁和回溯。
+
+## 返回什么
+
+返回阶段工件、门禁结果、未解决风险和下一步建议。
 
 # Workflow：Deliver（标准交付链路）
 

@@ -1,7 +1,26 @@
 ---
 name: workflow-hotfix
-description: 执行 workflow-hotfix 编排流程；这是由 Command 或其他 Skill 调用的注册 Workflow。
+description: 执行 workflow-hotfix 编排流程，负责阶段顺序、输入输出交接、门禁和回溯。
+risk: caution
+source: self
 ---
+
+## 做什么
+
+执行 `workflow-hotfix` 的完整编排流程。
+
+## 需要什么参数
+
+- **必需**：项目路径、目标和当前上下文。
+- **可选**：技术栈、约束、工单号和已有运行工件。
+
+## 怎么做
+
+按下方流程执行阶段、门禁和回溯。
+
+## 返回什么
+
+返回阶段工件、门禁结果、未解决风险和下一步建议。
 
 # Workflow：Hotfix（紧急生产修复）
 
@@ -65,7 +84,7 @@ worktree  → git worktree add -b hotfix/login-500 ../app.worktrees/hot v1.3.2
 commit    → fix(auth): 登录时 session 为空导致 500（单个最小提交）        ── G2 ✅
 ship      → push；PR 正文:故障/根因/影响/验证；CI 绿                       ── G3 ✅
 integrate → 合入生产分支 → git tag -a v1.3.3 && push → 触发发布            ── G-rel ✅
-back-merge→ git switch main && git merge hotfix （把修复回灌 main 与进行中的 epic/checkout）── G-back ✅
+back-merge→ 在 main/develop/epic 各自的 worktree 或 back-merge 分支中执行 git merge hotfix （把修复回灌 main 与进行中的 epic/checkout）── G-back ✅
 清理      → 删 hotfix/login-500 分支与 worktree
 → 生产已修复发版 v1.3.3,修复已回灌,不会被下次发布覆盖
 ```
