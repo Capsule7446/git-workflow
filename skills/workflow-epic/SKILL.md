@@ -102,7 +102,13 @@ route     → 场景 = epic；epic/checkout 不存在 → git switch -c epic/che
 周期同步   → 每隔几天在 epic/checkout 上 git merge origin/main（防收口巨冲突）
 收口       → 3 子需求齐 → epic/checkout 与 main 无冲突、CI 绿                ── G4 ✅
             gh pr merge <epic-pr> --merge   （merge commit 收口，保留"结算改版"整块）
-            git fetch origin main && git switch main && git pull --ff-only && git tag -a v1.4.0 -m "release: v1.4.0" && git push origin v1.4.0       （minor：新增功能）
+            merge_oid=$(gh pr view <epic-pr> --json mergeCommit --jq .mergeCommit.oid)
+            test -n "$merge_oid"
+            git fetch origin main
+            git tag -a v1.4.0 "$merge_oid" -m "release: v1.4.0"
+            git push origin v1.4.0
+            # 不切换当前 worktree；若需同步 main，进入已检出的 main worktree，
+            # 或创建专用发布 worktree 后执行 git pull --ff-only。
 清理       → 删 epic/checkout + feature/checkout-* 全部子分支 + 全部 worktree
 → 结算改版上主线、发版 v1.4.0,集成分支用完即删
 ```
